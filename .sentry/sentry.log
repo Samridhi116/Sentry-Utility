@@ -1,0 +1,38 @@
+{"level":"error","message":"Failed to navigate to login page: Error: page.goto: url: expected string, got undefined","timestamp":"2025-06-01T06:15:56.170Z"}
+{"level":"error","message":"Test failed: Error: page.goto: url: expected string, got undefined","timestamp":"2025-06-01T06:15:56.171Z"}
+{"level":"info","message":"Attempting to navigate to: https://sprouts-x2.sentry.io/auth/login/sprouts-x2/","timestamp":"2025-06-01T06:18:35.504Z"}
+{"level":"info","message":"Element found: [name=\"username\"]","timestamp":"2025-06-01T06:18:36.791Z"}
+{"level":"info","message":"Navigated to Sentry login page: https://sprouts-x2.sentry.io/auth/login/sprouts-x2/","timestamp":"2025-06-01T06:18:36.792Z"}
+{"level":"info","message":"URL matches pattern: /.*sprouts-x2\\.sentry\\.io.*/","timestamp":"2025-06-01T06:18:39.108Z"}
+{"level":"info","message":"Logged in successfully","timestamp":"2025-06-01T06:18:39.221Z"}
+{"level":"info","message":"URL matches pattern: /.*insights\\/frontend.*/","timestamp":"2025-06-01T06:18:46.086Z"}
+{"level":"info","message":"Navigated to Frontend page","timestamp":"2025-06-01T06:18:46.087Z"}
+{"level":"error","message":"Failed to apply filters: TimeoutError: locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: 'Apply' })\u001b[22m\n","timestamp":"2025-06-01T06:19:16.638Z"}
+{"level":"error","message":"Test failed: TimeoutError: locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: 'Apply' })\u001b[22m\n","timestamp":"2025-06-01T06:19:16.638Z"}
+{"level":"info","message":"Attempting to navigate to: https://sprouts-x2.sentry.io/auth/login/sprouts-x2/","timestamp":"2025-06-01T06:19:42.469Z"}
+{"level":"info","message":"Element found: [name=\"username\"]","timestamp":"2025-06-01T06:19:43.756Z"}
+{"level":"info","message":"Navigated to Sentry login page: https://sprouts-x2.sentry.io/auth/login/sprouts-x2/","timestamp":"2025-06-01T06:19:43.756Z"}
+{"level":"info","message":"URL matches pattern: /.*sprouts-x2\\.sentry\\.io.*/","timestamp":"2025-06-01T06:19:46.204Z"}
+{"level":"info","message":"Logged in successfully","timestamp":"2025-06-01T06:19:46.322Z"}
+{"level":"info","message":"URL matches pattern: /.*insights\\/frontend.*/","timestamp":"2025-06-01T06:19:53.095Z"}
+{"level":"info","message":"Navigated to Frontend page","timestamp":"2025-06-01T06:19:53.095Z"}
+{"level":"error","message":"Element not found: div:has-text(\"Last 7 days\"), TimeoutError: page.waitForSelector: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('div:has-text(\"Last 7 days\")') to be visible\u001b[22m\n","timestamp":"2025-06-01T06:20:23.681Z"}
+{"level":"error","message":"Failed to apply filters: TimeoutError: page.waitForSelector: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('div:has-text(\"Last 7 days\")') to be visible\u001b[22m\n","timestamp":"2025-06-01T06:20:23.681Z"}
+{"level":"error","message":"Test failed: TimeoutError: page.waitForSelector: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('div:has-text(\"Last 7 days\")') to be visible\u001b[22m\n","timestamp":"2025-06-01T06:20:23.681Z"}
+{"level":"info","message":"Attempting to navigate to: https://sprouts-x2.sentry.io/auth/login/sprouts-x2/","timestamp":"2025-06-01T06:22:10.775Z"}
+{"level":"info","message":"Element found: [name=\"username\"]","timestamp":"2025-06-01T06:22:12.872Z"}
+{"level":"info","message":"Navigated to Sentry login page: https://sprouts-x2.sentry.io/auth/login/sprouts-x2/","timestamp":"2025-06-01T06:22:12.872Z"}
+{"level":"info","message":"URL matches pattern: /.*sprouts-x2\\.sentry\\.io.*/","timestamp":"2025-06-01T06:22:15.482Z"}
+{"level":"info","message":"Logged in successfully","timestamp":"2025-06-01T06:22:15.605Z"}
+{"level":"info","message":"URL matches pattern: /.*insights\\/frontend.*/","timestamp":"2025-06-01T06:22:22.602Z"}
+{"level":"info","message":"Navigated to Frontend page","timestamp":"2025-06-01T06:22:22.603Z"}
+{"level":"info","message":"Element found: div:has-text(\"Last 7 days\")","timestamp":"2025-06-01T06:22:23.055Z"}
+{"level":"info","message":"Applied filters and sorted by p95","timestamp":"2025-06-01T06:22:24.904Z"}
+{"level":"info","message":"Calling transactionedEventCapture","timestamp":"2025-06-01T06:22:24.905Z"}
+{"level":"info","message":"Starting transactionedEventCapture","timestamp":"2025-06-01T06:22:25.057Z"}
+{"level":"info","message":"Fetching transactions with params: {\"field\":[\"team_key_transaction\",\"transaction\",\"transaction.op\",\"project\",\"tpm()\",\"p50(transaction.duration)\",\"p75(transaction.duration)\",\"p95(transaction.duration)\",\"count_unique(user)\",\"count_miserable(user)\",\"user_misery()\"],\"query\":\"( ( transaction.op:pageload OR transaction.op:navigation OR transaction.op:ui.render OR transaction.op:interaction ) OR project.id:[4506947671425024] ) !transaction.op:http.server event.type:transaction\",\"project\":\"4506947671425024\",\"statsPeriod\":\"7d\",\"per_page\":50,\"dataset\":\"metrics\",\"sort\":[\"-team_key_transaction\",\"-p95_transaction_duration\"],\"referrer\":\"api.performance.landing-table\",\"environment\":[\"production\",\"prod\"]}","timestamp":"2025-06-01T06:22:25.058Z"}
+{"level":"info","message":"Request headers: {\"Authorization\":\"Bearer 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\",\"User-Agent\":\"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36\",\"accept\":\"application/json; charset=utf-8\",\"content-type\":\"application/json\",\"baggage\":\"sentry-environment=prod,sentry-release=frontend@dc6723bfd9231d1834d7c99d021da5d12399bd38,sentry-public_key=c51734c603c4430eb57cb0a5728a479d,sentry-trace_id=e23297f4951242be977c4e7fc56dd45b,sentry-transaction=/insights/frontend/,sentry-sampled=true,sentry-sample_rate=1\",\"sentry-trace\":\"e23297f4951242be977c4e7fc56dd45b-87dd5de1fa1fadd7-1\"}","timestamp":"2025-06-01T06:22:25.058Z"}
+{"level":"error","message":"Fetch transactions failed: Request failed with status code 400, Status: 400, Data: {\"detail\":\"Need at least one function\"}","timestamp":"2025-06-01T06:22:25.625Z"}
+{"level":"error","message":"transactionedEventCapture failed: AxiosError: Request failed with status code 400","timestamp":"2025-06-01T06:22:25.625Z"}
+{"level":"info","message":"Excel file saved: Sentry_2025-06-01T0622.xlsx","timestamp":"2025-06-01T06:22:25.654Z"}
+{"level":"error","message":"Test failed: AxiosError: Request failed with status code 400","timestamp":"2025-06-01T06:22:25.677Z"}

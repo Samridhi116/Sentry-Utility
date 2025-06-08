@@ -1,0 +1,14 @@
+
+# Playwright
+node_modules/
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+.env
+Sentry_*.xlsx
+sentry-automation.log
+dist/
+
+/output/*
+!/output/.gitkeep
