@@ -1,74 +1,94 @@
-
-import { test } from '@playwright/test';
-import { SentryPage } from '../pages/sentryPage';
-import { writeToDataFile } from '../utils/dataUtils';
+import { test, Page } from '@playwright/test';
+import { SentryPage, TraceData } from '../pages/sentryPage';
+import { writeFileSync } from 'fs';
+import { parse } from 'json2csv';
 import { logger } from '../utils/logger';
-import path from 'path';
-import dotenv from 'dotenv';
-
-// Fallback .env loading
-const envPath = '/Users/marcellus/Desktop/Sentry-Automation/.env';
-logger.info(`Loading .env from: ${envPath}`);
-dotenv.config({ path: envPath });
 
 test.describe('Sentry Automation', () => {
-  test('Fetch and process Sentry data', async ({ browser }) => {
+  let pages: Page[];
+  let sentryPage: SentryPage;
+
+  test.beforeAll(async ({ browser }) => {
     const context = await browser.newContext();
-    const page = await context.newPage();
-    const sentryPage = new SentryPage([page]);
+    pages = [await context.newPage()];
+    sentryPage = new SentryPage(pages);
+    await sentryPage.login();
+    await sentryPage.gotoFrontend();
+  });
 
-    // Generate timestamped output file name
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-    const outputPath = path.join(
-      './output',
-      `sentry_${timestamp}.csv`
-    );
-    logger.info(`CSV output path: ${outputPath}`);
+  test('Fetch and process Sentry transactions', async () => {
+    const startTime = Date.now();
+    logger.info('Starting Sentry automation test');
 
-    try {
-      // Login
-      await sentryPage.login();
-      logger.info('Login successful');
+    const transactions = await sentryPage.fetchTransactions();
+    const frontendData: TraceData[] = [];
+    const backendData: TraceData[] = [];
 
-      // Navigate to frontend
-      await sentryPage.gotoFrontend();
-      logger.info('Navigated to frontend');
+    for (const transaction of transactions) {
+      const project = transaction.project || 'javascript-react-qa';
+      const events = await sentryPage.fetchSampledEvents(transaction, project);
 
-      // Fetch transactions
-      const transactions = await sentryPage.fetchTransactions();
-      logger.info(`Total transactions fetched: ${transactions.length}`);
+      for (const event of events) {
+        const spans = await sentryPage.fetchTraceDetails(event.id, event.traceId, transaction, event.timestamp ?? Math.floor(Date.now() / 1000));
+        const { frontend, backend } = await sentryPage.processTransaction(transaction, event, spans);
 
-      // Process each transaction
-      for (const transaction of transactions) {
-        const project = 'javascript-react-qa';
-        const events = await sentryPage.fetchSampledEvents(transaction, project);
-        logger.info(`Fetched ${events.length} events for transaction: ${transaction.transaction}`);
-
-        for (const event of events) {
-          const spans = await sentryPage.fetchTraceDetails(
-            event.id,
-            event.traceId,
-            transaction,
-            event.timestamp ?? Math.floor(Date.now() / 1000)
-          );
-          logger.info(`Fetched ${spans.length} spans for event: ${event.id}`);
-          const rows = await sentryPage.processTransaction(transaction, event, spans);
-          
-          // Append data to CSV immediately
-          if (rows.length > 0) {
-            logger.debug(`Writing ${rows.length} rows to CSV for event ${event.id}: ${JSON.stringify(rows, null, 2)}`);
-            await writeToDataFile(rows, outputPath);
-          } else {
-            logger.warn(`No rows to write for event: ${event.id}`);
-          }
-        }
+        frontendData.push(...frontend);
+        backendData.push(...backend);
       }
-    } catch (error) {
-      logger.error(`Test failed: ${String(error)}`);
-      await page.screenshot({ path: 'screenshots/test-error.png' });
-      throw error;
-    } finally {
-      await context.close();
+    }
+
+    // Aggregate traces across all events
+    const frontendTraceMap: { [key: string]: TraceData } = {};
+    const backendTraceMap: { [key: string]: TraceData } = {};
+
+    frontendData.forEach((row) => {
+      if (!frontendTraceMap[row.Trace]) {
+        frontendTraceMap[row.Trace] = { ...row };
+      } else {
+        const existing = frontendTraceMap[row.Trace];
+        existing.Count += row.Count;
+        existing.Avg_Duration = parseFloat(((existing.Avg_Duration * existing.Count + row.Avg_Duration * row.Count) / (existing.Count + row.Count)).toFixed(9));
+        existing.Min_Duration = Math.min(existing.Min_Duration, row.Min_Duration);
+        existing.Max_Duration = Math.max(existing.Max_Duration, row.Max_Duration);
+      }
+    });
+
+    backendData.forEach((row) => {
+      if (!backendTraceMap[row.Trace]) {
+        backendTraceMap[row.Trace] = { ...row };
+      } else {
+        const existing = backendTraceMap[row.Trace];
+        existing.Count += row.Count;
+        existing.Avg_Duration = parseFloat(((existing.Avg_Duration * existing.Count + row.Avg_Duration * row.Count) / (existing.Count + row.Count)).toFixed(9));
+        existing.Min_Duration = Math.min(existing.Min_Duration, row.Min_Duration);
+        existing.Max_Duration = Math.max(existing.Max_Duration, row.Max_Duration);
+      }
+    });
+
+    // Convert to arrays and sort by Count descending
+    const frontendRows = Object.values(frontendTraceMap).sort((a, b) => b.Count - a.Count);
+    const backendRows = Object.values(backendTraceMap).sort((a, b) => b.Count - a.Count);
+
+    // Generate CSV files
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').split('Z')[0];
+    const frontendCsv = parse(frontendRows, { fields: ['Trace', 'Count', 'Avg_Duration', 'Min_Duration', 'Max_Duration'] });
+    const backendCsv = parse(backendRows, { fields: ['Trace', 'Count', 'Avg_Duration', 'Min_Duration', 'Max_Duration'] });
+
+    const frontendFilePath = `./output/frontend_sentry_${timestamp}.csv`;
+    const backendFilePath = `./output/backend_sentry_${timestamp}.csv`;
+
+    writeFileSync(frontendFilePath, frontendCsv);
+    writeFileSync(backendFilePath, backendCsv);
+
+    logger.info(`Frontend CSV written to: ${frontendFilePath}`);
+    logger.info(`Backend CSV written to: ${backendFilePath}`);
+    logger.info(`Total frontend rows: ${frontendRows.length}, backend rows: ${backendRows.length}`);
+    logger.info(`Test completed in ${(Date.now() - startTime) / 1000} seconds`);
+  });
+
+  test.afterAll(async () => {
+    for (const page of pages) {
+      await page.close();
     }
   });
 });

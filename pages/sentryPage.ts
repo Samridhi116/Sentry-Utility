@@ -5,6 +5,14 @@ import { logger } from '../utils/logger';
 import { Transaction, ExcelData, Event, Span } from '../types/sentry';
 import { URL } from 'url';
 
+export interface TraceData {
+  Trace: string;
+  Count: number;
+  Avg_Duration: number;
+  Min_Duration: number;
+  Max_Duration: number;
+}
+
 export class SentryPage {
   pages: Page[];
   constructor(pages: Page[]) {
@@ -217,7 +225,7 @@ export class SentryPage {
     return spans;
   }
 
-  async processTransaction(transaction: Transaction, event: Event, spans: Span[]): Promise<ExcelData[]> {
+  async processTransaction(transaction: Transaction, event: Event, spans: Span[]): Promise<{ frontend: TraceData[]; backend: TraceData[] }> {
     const backendDomains = [
       'qams.sprouts.ai',
       'devmdqs.sprouts.ai',
@@ -242,29 +250,55 @@ export class SentryPage {
     logger.debug(`Event: ${JSON.stringify(event, null, 2)}`);
     logger.debug(`Spans: ${JSON.stringify(spans, null, 2)}`);
 
-    const rows: ExcelData[] = spans
+    const traceMap: { [key: string]: { durations: number[]; team: 'Frontend' | 'Backend' } } = {};
+
+    spans
       .filter((span) => span.exclusive_time > 5000)
       .filter((span) => 
         !excludedDomains.some((domain) => 
           span.description?.toLowerCase().includes(domain)
         )
       )
-      .map((span) => {
+      .forEach((span) => {
+        const trace = span.description || 'No description';
+        const duration = (span.exclusive_time || 0) / 1000;
         const isBackend = backendDomains.some((domain) =>
           span.description?.toLowerCase().includes(domain)
         );
-        return {
-          Transaction: transaction.transaction || 'No transaction',
-          Operation: transaction['transaction.op'] || 'No operation',
-          'Event Id': event.id || 'No event',
-          Trace: span.description || 'No trace',
-          'Time duration': (span.exclusive_time || 0) / 1000,
-          SproutsTeam: isBackend ? 'Backend' : 'Frontend',
-        };
+        const team = isBackend ? 'Backend' : 'Frontend';
+
+        if (!traceMap[trace]) {
+          traceMap[trace] = { durations: [], team };
+        }
+        traceMap[trace].durations.push(duration);
       });
 
+    const frontend: TraceData[] = [];
+    const backend: TraceData[] = [];
+
+    Object.entries(traceMap).forEach(([trace, { durations, team }]) => {
+      const count = durations.length;
+      const avgDuration = durations.reduce((sum, d) => sum + d, 0) / count;
+      const minDuration = Math.min(...durations);
+      const maxDuration = Math.max(...durations);
+
+      const data: TraceData = {
+        Trace: trace,
+        Count: count,
+        Avg_Duration: parseFloat(avgDuration.toFixed(9)),
+        Min_Duration: parseFloat(minDuration.toFixed(9)),
+        Max_Duration: parseFloat(maxDuration.toFixed(9)),
+      };
+
+      if (team === 'Frontend') {
+        frontend.push(data);
+      } else {
+        backend.push(data);
+      }
+    });
+
     logger.info(`Total spans: ${spans.length}, Filtered spans: ${spans.filter(s => s.exclusive_time > 5000).length}`);
-    logger.info(`Generated ${rows.length} rows for event ${event.id}`);
-    return rows;
+    logger.info(`Generated ${frontend.length} frontend rows, ${backend.length} backend rows for event ${event.id}`);
+    return { frontend, backend };
   }
 }
