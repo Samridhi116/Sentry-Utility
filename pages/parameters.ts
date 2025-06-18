@@ -22,7 +22,7 @@ export const PROJECTS: Project[] = [
 
 //To choose the projects, change the index of SELECTED_PROJECT (0,1)
 //By default, it is set to 0 i.e., Pointing to Production
-export const SELECTED_PROJECT =  0; 
+export const SELECTED_PROJECT =  0;
 
 // To choose the sort field, uncomment the line for FIELD_SORTS
 export const FIELD_SORTS = ['p95(transaction.duration)'];
