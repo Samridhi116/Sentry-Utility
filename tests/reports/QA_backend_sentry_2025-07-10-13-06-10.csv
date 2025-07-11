@@ -1,5 +1,0 @@
-Trace,Count,Avg_Duration,Min_Duration,Max_Duration
-GET https://qams.sprouts.ai:6060/technologies/techStack,1,3.523,3.523,3.523
-GET https://qams.sprouts.ai:6060/loginDashboard?emailId=april23@yopmail.com&source=campaign-dashboard,1,15.002,15.002,15.002
-POST https://devmdqs.sprouts.ai/v1/contacts/search?databaseName=sprouts,1,4.001,4.001,4.001
-GET https://qams.sprouts.ai:6060/customer_lists?search_text=&type=MANUAL&page=0&size=1000&entityType=CONTACT,1,3.016,3.016,3.016
