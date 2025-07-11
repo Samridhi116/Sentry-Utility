@@ -70,47 +70,74 @@ interface Trace {
 
 interface CsvRow {
   Trace: string;
-  Count: number;
-  Avg_Duration: string;
-  Min_Duration: string;
-  Max_Duration: string;
+  Time_Duration: string;
+  Timestamp: string;
 }
 
-// Save Trace Data to CSV
-function saveTraceDataToCsv(rows: CsvRow[], type: 'frontend' | 'backend', suffix: string = ''): void {
-  if (rows.length === 0) {
-    console.log(`No ${type} trace data to save.`);
-    return;
-  }
-
-  const headers = ['Trace', 'Count', 'Avg_Duration', 'Min_Duration', 'Max_Duration'];
-  const csvRows = rows.map(row => [
-    row.Trace,
-    row.Count.toString(),
-    row.Avg_Duration,
-    row.Min_Duration,
-    row.Max_Duration,
-  ]);
-
-  const csvContent = stringify([headers, ...csvRows], { delimiter: ',' });
-  const outputFile = path.join(OUTPUT_DIR, `${type}_sentry_${timestamp}${suffix ? `_${suffix}` : ''}.csv`);
+// Initialize CSV file with headers
+function initializeCsv(): void {
+  const headers = ['Trace', 'Time_Duration', 'Timestamp'];
+  const csvContent = stringify([headers], { delimiter: ',' });
+  const outputFile = path.join(OUTPUT_DIR, `apiAnalysis_${timestamp}.csv`);
   fs.mkdirSync(OUTPUT_DIR, { recursive: true });
   fs.writeFileSync(outputFile, csvContent, { encoding: 'utf-8' });
-  console.log(`${type.charAt(0).toUpperCase() + type.slice(1)} trace report saved to ${outputFile}`);
+  console.log(`Initialized CSV: ${outputFile}`);
 }
 
-test.describe('Sentry API Automation', () => {
-  test('Fetch and save transaction, event, and trace data to CSV with cursor pagination', async ({ request }) => {
-    // Initialize data structures
-    let allTraces: Trace[] = [];
-    let frontend: CsvRow[] = [];
-    let backend: CsvRow[] = [];
+// Append traces to CSV, grouped by description
+function appendTracesToCsv(traces: Trace[]): void {
+  const descriptionGroups: Map<string, CsvRow[]> = new Map();
 
+  // Group traces by description
+  traces.forEach(trace => {
+    const description = trace.description || '';
+    const hasExcludedDomain = excludedDomains.some(domain => description.includes(domain));
+    if (hasExcludedDomain) {
+      console.log(`Excluding description '${description}' due to excluded domain`);
+      return;
+    }
+
+    const isBackend = backendDomains.some(domain => description.includes(domain));
+    if (!isBackend) {
+      console.log(`Skipping frontend trace '${description}'`);
+      return;
+    }
+
+    const row: CsvRow = {
+      Trace: description,
+      Time_Duration: parseFloat((trace['span.duration'] / 1000).toFixed(3)).toString(),
+      Timestamp: new Date(trace.timestamp).toLocaleString('en-US', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false,
+        timeZone: 'Asia/Kolkata', // IST (UTC+5:30)
+      }).replace(/,/, '').replace(/(\d+)\/(\d+)\/(\d+)/, '$3-$1-$2'),
+    };
+
+    if (!descriptionGroups.has(description)) {
+      descriptionGroups.set(description, []);
+    }
+    descriptionGroups.get(description)!.push(row);
+  });
+
+  // Write grouped traces to CSV
+  const outputFile = path.join(OUTPUT_DIR, `apiAnalysis_${timestamp}.csv`);
+  for (const [description, rows] of descriptionGroups) {
+    const csvContent = stringify(rows.map(row => [row.Trace, row.Time_Duration, row.Timestamp]), { delimiter: ',' });
+    fs.appendFileSync(outputFile, csvContent, { encoding: 'utf-8' });
+    console.log(`Appended ${rows.length} backend traces to CSV for: ${description}`);
+  }
+}
+
+test.describe('Sentry API Analysis', () => {
+  test('Fetch and save backend trace data to CSV in real-time with grouped traces', async ({ request }) => {
     // Handle test interruption (Ctrl+C, SIGINT, SIGTERM)
     const saveAndExit = () => {
-      console.log('Test interrupted. Saving collected data to CSV.');
-      saveTraceDataToCsv(frontend, 'frontend', 'partial');
-      saveTraceDataToCsv(backend, 'backend', 'partial');
+      console.log('Test interrupted. CSV contains all traces fetched so far.');
       process.exit(0);
     };
 
@@ -119,6 +146,9 @@ test.describe('Sentry API Automation', () => {
 
     try {
       console.log('Using SENTRY_AUTH_TOKEN:', SENTRY_AUTH_TOKEN ? 'Set' : 'Not set');
+
+      // Initialize CSV
+      initializeCsv();
 
       // Helper to build query string
       function buildQueryString(params: Record<string, string | string[]>): string {
@@ -167,7 +197,6 @@ test.describe('Sentry API Automation', () => {
             statsPeriod: '7d',
             sort: '-p95()',
             limit: '100',
-            query: 'transaction.duration:>10000ms',
           };
           let url = `https://sentry.io/api/0/organizations/${SENTRY_ORG}/events/?${buildQueryString(queryParams)}`;
           console.log(`Initial transactions URL: ${url}`);
@@ -193,9 +222,9 @@ test.describe('Sentry API Automation', () => {
             const transactions = data.data as Transaction[];
             console.log(`Fetched ${transactions.length} transactions:`, transactions.map(t => t.transaction));
 
-            const filteredTransactions = transactions.filter(t => t['p95()'] > 10000);
+            const filteredTransactions = transactions.filter(t => t['p95()'] > 0);
             allTransactions.push(...filteredTransactions);
-            console.log(`Filtered ${filteredTransactions.length} transactions with p95() > 10000ms`);
+            console.log(`Filtered ${filteredTransactions.length} transactions with p95() > 0ms`);
 
             const linkHeader = response.headers()['link'];
             const { nextUrl: newNextUrl, hasMore } = parseLinkHeader(linkHeader);
@@ -278,7 +307,7 @@ test.describe('Sentry API Automation', () => {
             field: ['transaction', 'description', 'timestamp', 'span.duration', 'trace'],
             per_page: '100',
             project: SENTRY_PROJECT_ID,
-            query: `trace:${traceId} span.duration:>5000ms`,
+            query: `trace:${traceId}`,
             statsPeriod: '7d',
           };
           let url = `https://sentry.io/api/0/organizations/${SENTRY_ORG}/events/?${buildQueryString(queryParams)}`;
@@ -299,7 +328,7 @@ test.describe('Sentry API Automation', () => {
             const traces = data.data as Trace[];
             console.log(`Fetched ${traces.length} trace records for ${traceId}`);
             if (traces.length === 0) {
-              console.log(`No traces found for trace ID '${traceId}' with span.duration:>5000ms`);
+              console.log(`No traces found for trace ID '${traceId}'`);
             }
             allTraces.push(...traces);
 
@@ -313,57 +342,12 @@ test.describe('Sentry API Automation', () => {
           } while (nextUrl);
 
           console.log(`Total traces fetched for ${traceId}: ${allTraces.length}`);
+          appendTracesToCsv(allTraces); // Append grouped traces for this trace ID
           return allTraces;
         } catch (error) {
           console.error(`Error fetching trace data for ${traceId}: ${error}`);
           return allTraces;
         }
-      }
-
-      // Categorize and aggregate traces by description
-      function categorizeAndAggregateTraces(traces: Trace[]): { frontend: CsvRow[]; backend: CsvRow[] } {
-        const descriptionGroups: Map<string, Trace[]> = new Map();
-        traces.forEach(trace => {
-          const description = trace.description || '';
-          if (!descriptionGroups.has(description)) {
-            descriptionGroups.set(description, []);
-          }
-          descriptionGroups.get(description)!.push(trace);
-        });
-
-        const frontend: CsvRow[] = [];
-        const backend: CsvRow[] = [];
-
-        for (const [description, traceGroup] of descriptionGroups) {
-          const hasExcludedDomain = excludedDomains.some(domain => description.includes(domain));
-          if (hasExcludedDomain) {
-            console.log(`Excluding description '${description}' due to excluded domain`);
-            continue;
-          }
-
-          const isBackend = backendDomains.some(domain => description.includes(domain));
-          const durations = traceGroup.map(t => t['span.duration'] / 1000); // Convert to seconds
-          const count = durations.length;
-          const avgDuration = durations.reduce((sum, d) => sum + d, 0) / count;
-          const minDuration = Math.min(...durations);
-          const maxDuration = Math.max(...durations);
-
-          const row: CsvRow = {
-            Trace: description,
-            Count: count,
-            Avg_Duration: parseFloat(avgDuration.toFixed(3)).toString(),
-            Min_Duration: parseFloat(minDuration.toFixed(3)).toString(),
-            Max_Duration: parseFloat(maxDuration.toFixed(3)).toString(),
-          };
-
-          if (isBackend) {
-            backend.push(row);
-          } else {
-            frontend.push(row);
-          }
-        }
-
-        return { frontend, backend };
       }
 
       // Main logic
@@ -372,9 +356,7 @@ test.describe('Sentry API Automation', () => {
       console.log(`Transaction fetch time: ${(Date.now() - start) / 1000} seconds`);
 
       if (transactions.length === 0) {
-        console.log('No transactions found with p95() > 10000ms.');
-        saveTraceDataToCsv([], 'frontend');
-        saveTraceDataToCsv([], 'backend');
+        console.log('No transactions found with p95() > 0ms.');
         return;
       }
 
@@ -393,29 +375,17 @@ test.describe('Sentry API Automation', () => {
 
       // Parallelize trace fetching with p-limit
       const traceStart = Date.now();
-      allTraces = [];
       const tracePromises = allEvents.map(event =>
         limit(() => fetchTraceData(event.trace))
       );
       const traceResults = await Promise.all(tracePromises);
-      traceResults.forEach(traces => allTraces.push(...traces));
+      const allTraces = traceResults.flat();
       console.log(`Total traces fetched: ${allTraces.length}`);
       console.log(`Trace fetch time: ${(Date.now() - traceStart) / 1000} seconds`);
-
-      // Process traces and save CSVs
-      const processStart = Date.now();
-      const { frontend: frontendRows, backend: backendRows } = categorizeAndAggregateTraces(allTraces);
-      frontend = frontendRows;
-      backend = backendRows;
-      console.log(`Frontend traces: ${frontend.length}, Backend traces: ${backend.length}`);
-      saveTraceDataToCsv(frontend, 'frontend');
-      saveTraceDataToCsv(backend, 'backend');
-      console.log(`Processing time: ${(Date.now() - processStart) / 1000} seconds`);
       console.log(`Total execution time: ${(Date.now() - start) / 1000} seconds`);
     } catch (error) {
       console.error(`Test error: ${error}`);
-      saveTraceDataToCsv(frontend, 'frontend', 'error');
-      saveTraceDataToCsv(backend, 'backend', 'error');
+      console.log('CSV contains all backend traces fetched so far.');
     }
   });
 });

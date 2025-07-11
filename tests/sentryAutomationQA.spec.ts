@@ -10,7 +10,7 @@ dotenv.config();
 
 // Configuration
 const SENTRY_ORG = 'sprouts-x2';
-const SENTRY_PROJECT_ID = '4506947671425024';
+const SENTRY_PROJECT_ID = '4509228726681602';
 const SENTRY_AUTH_TOKEN = process.env.SENTRY_AUTH_TOKEN || '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';
 const OUTPUT_DIR = path.join(__dirname, 'reports');
 const timestamp = new Date().toISOString().replace(/T/, '-').replace(/:/g, '-').split('.')[0];
@@ -93,7 +93,7 @@ function saveTraceDataToCsv(rows: CsvRow[], type: 'frontend' | 'backend', suffix
   ]);
 
   const csvContent = stringify([headers, ...csvRows], { delimiter: ',' });
-  const outputFile = path.join(OUTPUT_DIR, `${type}_sentry_${timestamp}${suffix ? `_${suffix}` : ''}.csv`);
+  const outputFile = path.join(OUTPUT_DIR, `QA_${type}_sentry_${timestamp}${suffix ? `_${suffix}` : ''}.csv`);
   fs.mkdirSync(OUTPUT_DIR, { recursive: true });
   fs.writeFileSync(outputFile, csvContent, { encoding: 'utf-8' });
   console.log(`${type.charAt(0).toUpperCase() + type.slice(1)} trace report saved to ${outputFile}`);
@@ -164,10 +164,10 @@ test.describe('Sentry API Automation', () => {
             dataset: 'transactions',
             field: ['transaction', 'p95()', 'count()'],
             project: SENTRY_PROJECT_ID,
-            statsPeriod: '7d',
+            statsPeriod: '14d',
             sort: '-p95()',
             limit: '100',
-            query: 'transaction.duration:>10000ms',
+            query: 'transaction.duration:>5000ms',
           };
           let url = `https://sentry.io/api/0/organizations/${SENTRY_ORG}/events/?${buildQueryString(queryParams)}`;
           console.log(`Initial transactions URL: ${url}`);
@@ -193,9 +193,9 @@ test.describe('Sentry API Automation', () => {
             const transactions = data.data as Transaction[];
             console.log(`Fetched ${transactions.length} transactions:`, transactions.map(t => t.transaction));
 
-            const filteredTransactions = transactions.filter(t => t['p95()'] > 10000);
+            const filteredTransactions = transactions.filter(t => t['p95()'] > 5000);
             allTransactions.push(...filteredTransactions);
-            console.log(`Filtered ${filteredTransactions.length} transactions with p95() > 10000ms`);
+            console.log(`Filtered ${filteredTransactions.length} transactions with p95() > 5000ms`);
 
             const linkHeader = response.headers()['link'];
             const { nextUrl: newNextUrl, hasMore } = parseLinkHeader(linkHeader);
@@ -228,7 +228,7 @@ test.describe('Sentry API Automation', () => {
             per_page: '100',
             project: SENTRY_PROJECT_ID,
             query: `event.type:transaction transaction:${transaction}`,
-            statsPeriod: '7d',
+            statsPeriod: '14d',
           };
           let url = `https://sentry.io/api/0/organizations/${SENTRY_ORG}/events/?${buildQueryString(queryParams)}`;
           console.log(`Fetching events for ${transaction}`);
@@ -278,8 +278,8 @@ test.describe('Sentry API Automation', () => {
             field: ['transaction', 'description', 'timestamp', 'span.duration', 'trace'],
             per_page: '100',
             project: SENTRY_PROJECT_ID,
-            query: `trace:${traceId} span.duration:>5000ms`,
-            statsPeriod: '7d',
+            query: `trace:${traceId} span.duration:>3000ms`,
+            statsPeriod: '14d',
           };
           let url = `https://sentry.io/api/0/organizations/${SENTRY_ORG}/events/?${buildQueryString(queryParams)}`;
           console.log(`Fetching trace data for ${traceId}`);
@@ -372,7 +372,7 @@ test.describe('Sentry API Automation', () => {
       console.log(`Transaction fetch time: ${(Date.now() - start) / 1000} seconds`);
 
       if (transactions.length === 0) {
-        console.log('No transactions found with p95() > 10000ms.');
+        console.log('No transactions found with p95() > 5000ms.');
         saveTraceDataToCsv([], 'frontend');
         saveTraceDataToCsv([], 'backend');
         return;

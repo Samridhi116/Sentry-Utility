@@ -1,0 +1,27 @@
+Transaction,Description,Timestamp,Span Duration (ms),Trace ID
+/call-recordings,Main UI thread blocked,2025-07-03T20:31:39+00:00,12325.999975,5fd6c35be2c64fd68fb56fad011da3c5
+/call-recordings,Main UI thread blocked,2025-07-03T20:31:51+00:00,7480.000019,5fd6c35be2c64fd68fb56fad011da3c5
+/call-recordings,/call-recordings,2025-07-03T20:32:01+00:00,47699,5fd6c35be2c64fd68fb56fad011da3c5
+/call-recordings,Main UI thread blocked,2025-07-03T20:32:01+00:00,3001,5fd6c35be2c64fd68fb56fad011da3c5
+/call-recordings,GET https://ms.sprouts.ai:9555/load/icp/filters?entity=account,2025-07-03T20:31:56+00:00,3118.700027,5fd6c35be2c64fd68fb56fad011da3c5
+/call-recordings,POST https://ms.sprouts.ai:5050/customer/features,2025-07-03T20:31:53+00:00,9898.39983,5fd6c35be2c64fd68fb56fad011da3c5
+/call-recordings,POST https://ms.sprouts.ai:5050/cmp/fetch-call-recording,2025-07-03T20:31:54+00:00,10475.600005,5fd6c35be2c64fd68fb56fad011da3c5
+/call-recordings,Main UI thread blocked,2025-07-03T20:06:39+00:00,2263.999939,422f57c0a5c44c21ab9fb905bf73fe2d
+/call-recordings,Main UI thread blocked,2025-07-03T20:06:45+00:00,3430.999994,422f57c0a5c44c21ab9fb905bf73fe2d
+/call-recordings,/call-recordings,2025-07-03T20:06:49+00:00,15449,422f57c0a5c44c21ab9fb905bf73fe2d
+/call-recordings,POST https://ms.sprouts.ai:5050/cmp/fetch-call-recording,2025-07-03T20:06:46+00:00,4174.700022,422f57c0a5c44c21ab9fb905bf73fe2d
+/call-recordings,/call-recordings,2025-07-08T17:24:14+00:00,11602,e12e468176434176bccf28f8bdd9787d
+/call-recordings,POST https://ms.sprouts.ai:5050/cmp/fetch-call-recording,2025-07-08T17:24:14+00:00,7403.399944,e12e468176434176bccf28f8bdd9787d
+/call-recordings,/call-recordings,2025-07-08T22:56:47+00:00,14318,4091c45555454478991f400e20b0c115
+/call-recordings,/4748.b34d48ede09893a79754.bundle.js,2025-07-08T22:56:37+00:00,2585.400343,4091c45555454478991f400e20b0c115
+/call-recordings,https://run.reply.io/dest/webcomponent.js,2025-07-08T22:56:38+00:00,3708.699942,4091c45555454478991f400e20b0c115
+/call-recordings,/main.37325b27346ebf93def3.bundle.js,2025-07-08T22:56:43+00:00,9509.799957,4091c45555454478991f400e20b0c115
+/call-recordings,/call-recordings,2025-07-09T15:03:59+00:00,19763,9f081f331d624c6484684449ed8824dd
+/call-recordings,/4748.b34d48ede09893a79754.bundle.js,2025-07-09T15:03:49+00:00,9911.800146,9f081f331d624c6484684449ed8824dd
+/call-recordings,https://run.reply.io/dest/vendor-f561d016.js,2025-07-09T15:03:50+00:00,6551.199913,9f081f331d624c6484684449ed8824dd
+/call-recordings,https://run.reply.io/dest/webcomponent.js,2025-07-09T15:03:43+00:00,3857.500076,9f081f331d624c6484684449ed8824dd
+/call-recordings,/main.a3ba3b5dd148b8889f1f.bundle.js,2025-07-09T15:03:57+00:00,17349.699974,9f081f331d624c6484684449ed8824dd
+/call-recordings,/call-recordings,2025-07-09T16:03:42+00:00,17074,8718016b5a654471a09a0dffbda0fdcc
+/call-recordings,/4748.b34d48ede09893a79754.bundle.js,2025-07-09T16:03:41+00:00,15411.900043,8718016b5a654471a09a0dffbda0fdcc
+/call-recordings,https://run.reply.io/dest/vendor-f561d016.js,2025-07-09T16:03:30+00:00,3358.00004,8718016b5a654471a09a0dffbda0fdcc
+/call-recordings,/main.a3ba3b5dd148b8889f1f.bundle.js,2025-07-09T16:03:32+00:00,6852.499723,8718016b5a654471a09a0dffbda0fdcc

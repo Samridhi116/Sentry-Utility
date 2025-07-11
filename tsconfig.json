@@ -1,15 +1,21 @@
 {
   "compilerOptions": {
     "target": "ESNext",
-    "module": "ESNext",
-    "moduleResolution": "node",
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
+    "module": "CommonJS",
     "strict": true,
+    "esModuleInterop": true,
+    "moduleResolution": "node",
+    "baseUrl": ".",
+    "paths": {
+      "@pages/*": ["pages/*"],
+      "@utils/*": ["utils/*"],
+      "@types/*": ["types/*"]
+    },
     "outDir": "./dist",
-    "rootDir": "./",
-    "types": ["node"]
+    "rootDir": ".",
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
   },
-  "include": ["tests/**/*", "pages/**/*", "utils/**/*"],
-  "exclude": ["node_modules"]
+  "include": ["pages/**/*", "utils/**/*", "types/**/*", "tests/**/*"],
+  "exclude": ["node_modules", "dist", "output"]
 }

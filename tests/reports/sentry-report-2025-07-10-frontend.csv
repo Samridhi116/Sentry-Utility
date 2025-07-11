@@ -1,0 +1,9 @@
+Transaction,Description,Timestamp,Span Duration (ms),Trace ID
+/website/webpages,/website/webpages,2025-07-09T07:00:50+00:00,11452,3caa7088b102414fb22d919811eae430
+/website/webpages,GET https://qams.sprouts.ai:8000/v1/pages/csv_export,2025-07-09T07:00:42+00:00,3221.600056,3caa7088b102414fb22d919811eae430
+/website/webpages,GET https://qams.sprouts.ai:8000/v1/pages,2025-07-09T07:00:50+00:00,6675.400018,3caa7088b102414fb22d919811eae430
+/website/webpages,Main UI thread blocked,2025-07-10T03:51:16+00:00,2858.599901,9c6589a8cd1346468303582d02cb9e0f
+/website/webpages,/website/webpages,2025-07-10T03:51:17+00:00,15053,9c6589a8cd1346468303582d02cb9e0f
+/website/webpages,GET https://qams.sprouts.ai:8000/v1/pages,2025-07-10T03:51:07+00:00,3062.299967,9c6589a8cd1346468303582d02cb9e0f
+/website/webpages,GET https://qams.sprouts.ai:8000/v1/pages/top_visiting_domains,2025-07-10T03:51:11+00:00,2217.899799,9c6589a8cd1346468303582d02cb9e0f
+/website/webpages,GET https://qams.sprouts.ai:8000/v1/pages/top_visiting_domains,2025-07-10T03:51:16+00:00,4899.800062,9c6589a8cd1346468303582d02cb9e0f

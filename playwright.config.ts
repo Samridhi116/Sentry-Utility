@@ -1,5 +1,5 @@
 import { defineConfig, devices } from '@playwright/test';
-import { SENTRY_CONFIG } from './pages/parameters';
+// import { SENTRY_CONFIG } from './pages/parameters';
 import dotenv from 'dotenv';
 import path from 'path';
 
@@ -18,11 +18,11 @@ export default defineConfig({
   workers: 1,
   timeout: 30 * 60 * 1000,
   use: {
-    baseURL: SENTRY_CONFIG.baseUrl,
+    baseURL: 'https://sprouts-x2.sentry.io',
     headless: true,
     viewport: { width: 1280, height: 720 },
-    actionTimeout: 30 * 60 * 1000,
-    navigationTimeout: 30 * 60 * 1000,
+    actionTimeout: 60 * 60 * 1000,
+    navigationTimeout: 60 * 60 * 1000,
     browserName: 'chromium',
     screenshot: 'only-on-failure',
     trace: 'on-first-retry',
