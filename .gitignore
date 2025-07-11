@@ -12,3 +12,7 @@ dist/
 
 /output/*
 !/output/.gitkeep
+
+
+/reports/*
+# !/reports/.gitkeep
